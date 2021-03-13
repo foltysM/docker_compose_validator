@@ -14,7 +14,7 @@ class Lexer:
 
     def tokenize(self, input_string):
         keywords = {'version', 'services', 'build', 'ports', 'image', 'volumes', 'environment', 'deploy', 'EOF',
-                    'networks', 'endpoint_mode', 'mode', 'replicas'}
+                    'networks'}
 
         token_specification = [
             ('ASSIGN', r': |:'),  # Assignment operator (colon)
@@ -22,7 +22,7 @@ class Lexer:
             ('LIST_INDICATOR', r'-'),  # Indicates a list
             ('NEWLINE', r'\n+'),  # Line endings and statement terminator
             # ('INDENTATION', r'[( {2}|\t)]'),  # Tab or 2 spaces
-            ('INDENTATION', r'( {2}|\t)+'),  # Tab or 2 spaces
+            ('INDENTATION', r'( {2}|\t)'),  # Tab or 2 spaces
             ('SPACE', r' '),  # spaces
             ('ID', r'(([A-Za-z]|(-)|(\d)|(\/)|(_))+)|(^"$"[A-Za-z]+)|(\d+(\.\d*)?)|("(?:[^"\\]|\\.)*")'),
         ]
