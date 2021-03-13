@@ -10,6 +10,7 @@ if __name__ == "__main__":
 
 print(input_txt)
 lexer = Lexer(input_txt)
-print(lexer.tokens)
+for i in lexer.tokens:
+    print(i)
 parser = Parser(lexer)
 parser.start()
