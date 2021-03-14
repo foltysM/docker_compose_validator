@@ -42,87 +42,92 @@ class Parser:
     def top_level_element(self):
         # top_level_element -> version assign ID NEWLINE top_level_element
         if self.token.type == 'version':
-            self.level = 0
             self.take_token('version')
             self.take_token('ASSIGN')
             self.take_token('ID')
-            self.take_token('NEWLINE')
             print("Version OK")
+            if self.token.type == 'EOF':
+                return
+            self.take_token('NEWLINE')
+            self.level = 0
             self.top_level_element()
+
         # top_level_element -> services assign newline indentation indentation services_element
         elif self.token.type == 'services':
-            self.level = 0
             self.take_token('services')
             self.take_token('ASSIGN')
             self.take_token('NEWLINE')
+            self.level = 1
             self.second_level()
+            print("Services OK")
+            self.level = 0
             self.top_level_element()
 
-            # poniżej do skopiowania
-
-            # powyżej do skopiowania
-
         elif self.token.type == 'volumes':
-            self.level = 0
             self.take_token('volumes')
             self.take_token('ASSIGN')
             self.take_token('NEWLINE')
+            self.level = 1
             self.volumes_element()
             print("Volumes ok")
-            self.top_level_element()
-            # TODO
-        elif self.token.type == 'networks':
             self.level = 0
+            self.top_level_element()
+
+        elif self.token.type == 'networks':
             self.take_token('networks')
             self.take_token('ASSIGN')
             self.take_token('NEWLINE')
+            self.level = 1
             self.networks_element()
             print("Networks ok")
+            self.level = 0
             self.top_level_element()
-            # TODO
         else:
             pass
 
-    def version(self):
-        pass
-
-    def assign_prod(self):
-        pass
-
     def services_element(self):
+        if self.level != 0:
+            # services_element -> ID assign newline image_prod
+            if self.token.type == 'image':
+                self.take_token('image')
+                self.take_token('ASSIGN')
+                self.image_prod()
 
-        # services_element -> ID assign newline image_prod
-        if self.token.type == 'image':
-            self.take_token('image')
-            self.take_token('ASSIGN')
-            self.image_prod()
-        # services_element -> ID assign newline build
-        elif self.token.type == 'build':
-            self.build_prod()
-            # TODO
-        # services_element -> ID assign newline ports
-        elif self.token.type == 'ports':
-            self.take_token('ports')
-            self.take_token('ASSIGN')
-            self.ports_prod()
-            self.services_element()
-        # services_element -> ID assign newline networks
-        elif self.token.type == 'networks':
-            self.take_token('networks')
-            self.take_token('ASSIGN')
-            self.networks_prod()
-            self.services_element()
-        # services_element -> ID assign newline deploy
-        elif self.token.type == 'deploy':
-            self.take_token('deploy')
-            self.take_token('ASSIGN')
-            self.deploy_prod()
-            self.services_element()
-        elif self.token.type == 'volumes':
-            self.take_token('volumes')
-            self.take_token('ASSIGN')
-            self.volumes_prod()
-            self.services_element()
+            # services_element -> ID assign newline build
+            elif self.token.type == 'build':
+                self.take_token('build')
+                self.take_token('ASSIGN')
+                self.build_prod()
+                self.services_element()
+
+            # services_element -> ID assign newline ports
+            elif self.token.type == 'ports':
+                self.take_token('ports')
+                self.take_token('ASSIGN')
+                self.ports_prod()
+                self.services_element()
+
+            # services_element -> ID assign newline networks
+            elif self.token.type == 'networks':
+                self.take_token('networks')
+                self.take_token('ASSIGN')
+                self.networks_prod()
+                self.services_element()
+
+            # services_element -> ID assign newline deploy
+            elif self.token.type == 'deploy':
+                self.take_token('deploy')
+                self.take_token('ASSIGN')
+                self.deploy_prod()
+                self.services_element()
+
+            elif self.token.type == 'volumes':
+                self.take_token('volumes')
+                self.take_token('ASSIGN')
+                self.volumes_prod()
+                self.services_element()
+            else:
+                pass
         else:
             pass
 
@@ -146,7 +151,7 @@ class Parser:
         # TODO
         pass
 
-    def ports_prod(self):
+    def networks_prod(self):
         if self.token.type == 'ID':
             self.take_token('ID')
             self.take_token('NEWLINE')
@@ -155,17 +160,20 @@ class Parser:
         elif self.token.type == 'NEWLINE':
             self.take_token('NEWLINE')
             self.take_token('INDENTATION')
-            self.take_token('INDENTATION')
             if self.token.type == 'INDENTATION':
                 self.take_token('INDENTATION')
-                self.take_token('LIST_INDICATOR')
-                self.take_token('SPACE')
-                self.take_token('ID')
-                self.ports_prod()
+                if self.token.type == 'INDENTATION':
+                    self.take_token('INDENTATION')
+                    self.take_token('LIST_INDICATOR')
+                    self.take_token('SPACE')
+                    self.take_token('ID')
+                    self.networks_prod()
+                else:
+                    pass
             else:
                 pass
 
-    def networks_prod(self):
+    def ports_prod(self):
         if self.token.type == 'ID':
             self.take_token('ID')
             self.take_token('NEWLINE')
@@ -190,19 +198,22 @@ class Parser:
             self.take_token('INDENTATION')
             if self.token.type == 'INDENTATION':
                 self.take_token('INDENTATION')
-                self.take_token('INDENTATION')
-                self.take_token('ID')
-                self.take_token('ASSIGN')
-                self.take_token('ID')
-                self.deploy_prod()
+                if self.token.type == 'INDENTATION':
+                    self.take_token('INDENTATION')
+                    self.take_token('ID')
+                    self.take_token('ASSIGN')
+                    self.take_token('ID')
+                    self.deploy_prod()
+                else:
+                    pass
             else:
-                print("debug")
                 pass
         elif self.token.type == 'NEWLINE':
-            # TODO wyjscie do elementu services
+            # error
             pass
         else:
-            # TODO Error
+            # exit
+            self.level = 0
             pass
 
     def volumes_prod(self):
@@ -213,12 +224,19 @@ class Parser:
             self.services_element()
         elif self.token.type == 'NEWLINE':
             self.take_token('NEWLINE')
-            self.take_token('INDENTATION')
-            if self.token.type == 'LIST_INDICATOR':
-                self.take_token('LIST_INDICATOR')
-                self.take_token('SPACE')
-                self.take_token('ID')
-                self.ports_prod()
+            if self.token.type == 'INDENTATION':
+                self.take_token('INDENTATION')
+                self.take_token('INDENTATION')
+                if self.token.type == 'INDENTATION':
+                    self.take_token('INDENTATION')
+                    self.take_token('LIST_INDICATOR')
+                    self.take_token('SPACE')
+                    self.take_token('ID')
+                    self.take_token('ASSIGN')
+                    self.take_token('ID')
+                    self.volumes_prod()
+                else:
+                    pass
             else:
                 pass
 
@@ -227,8 +245,11 @@ class Parser:
             self.take_token('INDENTATION')
             self.take_token('ID')
             self.take_token('ASSIGN')
-            self.take_token('NEWLINE')
-            self.volumes_element()
+            if self.token.type != 'EOF':
+                self.take_token('NEWLINE')
+                self.volumes_element()
+            else:
+                pass
         else:
             pass
 
@@ -237,26 +258,25 @@ class Parser:
             self.take_token('INDENTATION')
             self.take_token('ID')
             self.take_token('ASSIGN')
-            self.take_token('NEWLINE')
-            self.networks_element()
+            if self.token.type != 'EOF':
+                self.take_token('NEWLINE')
+                self.networks_element()
+            else:
+                print('EOF')
+                pass
         else:
             pass
 
     def second_level(self):
-        if self.token.type == 'INDENTATION': # TODO przy mysql brak indentacji
+        if self.token.type == 'INDENTATION':
             self.take_token('INDENTATION')
-            if self.token.type == 'INDENTATION':
-                # todo
-                pass
-            else:
-                self.take_token('ID')
-                self.take_token('ASSIGN')
-                self.take_token('NEWLINE')
-                self.take_token('INDENTATION')
-                self.take_token('INDENTATION')
-                self.services_element()
-                self.second_level()
+        if self.token.type == 'ID':
+            self.take_token('ID')
+            self.take_token('ASSIGN')
+            self.take_token('NEWLINE')
+            self.take_token('INDENTATION')
+            self.take_token('INDENTATION')
+            self.services_element()
+            self.second_level()
         else:
             pass
-
-
