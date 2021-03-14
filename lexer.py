@@ -14,13 +14,13 @@ class Lexer:
 
     def tokenize(self, input_string):
         keywords = {'version', 'services', 'build', 'ports', 'image', 'volumes', 'environment', 'deploy', 'EOF',
-                    'networks'}
+                    'networks', 'environment'}
 
         token_specification = [
             ('ASSIGN', r': |:'),  # Assignment operator (colon)
             # ('ID', r'([A-Za-z]+)|(^"$"[A-Za-z]+)|(\d+(\.\d*)?)|("(?:[^"\\]|\\.)*")')
             ('LIST_INDICATOR', r'-'),  # Indicates a list
-            ('NEWLINE', r'\n+'),  # Line endings and statement terminator
+            ('NEWLINE', r'\n'),  # Line endings and statement terminator
             # ('INDENTATION', r'[( {2}|\t)]'),  # Tab or 2 spaces
             ('INDENTATION', r'( {2}|\t)'),  # Tab or 2 spaces
             ('SPACE', r' '),  # spaces

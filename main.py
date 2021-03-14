@@ -11,8 +11,8 @@ if __name__ == "__main__":
 # print(input_txt)
 
 lexer = Lexer(input_txt)
-for i in lexer.tokens:
-    print(i)
-print(" ")
+# for i in lexer.tokens:
+#     print(i)
+# print(" ")
 parser = Parser(lexer)
 parser.start()
