@@ -134,6 +134,8 @@ class Parser:
     def image_prod(self):
         if self.token.type == 'ID':
             self.take_token('ID')
+            if self.token.type == 'EOF':
+                return
             self.take_token('NEWLINE')
             self.take_token('INDENTATION')
             self.take_token('INDENTATION')
@@ -147,9 +149,21 @@ class Parser:
             self.error("Epsilon not allowed")
 
     def build_prod(self):
-        self.take_token('ports')
-        # TODO
-        pass
+        if self.token.type == 'ID':
+            self.take_token('ID')
+            if self.token.type == 'EOF':
+                return
+            self.take_token('NEWLINE')
+            self.take_token('INDENTATION')
+            self.take_token('INDENTATION')
+            self.services_element()
+        elif self.token.type == 'NEWLINE':
+            self.take_token('NEWLINE')
+            self.take_token('INDENTATION')
+            self.take_token('INDENTATION')
+            self.top_level_element()
+        else:
+            self.error("Epsilon not allowed")
 
     def networks_prod(self):
         if self.token.type == 'ID':
@@ -159,6 +173,8 @@ class Parser:
             self.services_element()
         elif self.token.type == 'NEWLINE':
             self.take_token('NEWLINE')
+            if self.token.type == 'EOF':
+                return
             self.take_token('INDENTATION')
             if self.token.type == 'INDENTATION':
                 self.take_token('INDENTATION')
@@ -181,6 +197,8 @@ class Parser:
             self.services_element()
         elif self.token.type == 'NEWLINE':
             self.take_token('NEWLINE')
+            if self.token.type == 'EOF':
+                return
             self.take_token('INDENTATION')
             self.take_token('INDENTATION')
             if self.token.type == 'INDENTATION':
@@ -239,6 +257,10 @@ class Parser:
                     pass
             else:
                 pass
+        elif self.token.type == 'EOF':
+            return
+        else:
+            print('Illegal token at line {}, column {}'.format(self.token.line, self.token.column))
 
     def volumes_element(self):
         if self.token.type == 'INDENTATION':
