@@ -1,7 +1,5 @@
 class Parser:
 
-    # TODO indentation count
-
     # Parser header
     def __init__(self, lexer):
         self.next_token = lexer.next_token
@@ -57,14 +55,13 @@ class Parser:
             self.take_token('services')
             self.take_token('ASSIGN')
             self.take_token('NEWLINE')
-            self.take_token('INDENTATION')
-            self.take_token('ID')
-            # wyglada na brak jednego poziomu TODO
-            self.take_token('ASSIGN')
-            self.take_token('NEWLINE')
-            self.take_token('INDENTATION')
-            self.services_element()
+            self.second_level()
             self.top_level_element()
+
+            # poniżej do skopiowania
+
+            # powyżej do skopiowania
+
         elif self.token.type == 'volumes':
             self.level = 0
             self.take_token('volumes')
@@ -127,16 +124,18 @@ class Parser:
             self.volumes_prod()
             self.services_element()
         else:
-            self.error("Epsilon not allowed")
+            pass
 
     def image_prod(self):
         if self.token.type == 'ID':
             self.take_token('ID')
             self.take_token('NEWLINE')
             self.take_token('INDENTATION')
+            self.take_token('INDENTATION')
             self.services_element()
         elif self.token.type == 'NEWLINE':
             self.take_token('NEWLINE')
+            self.take_token('INDENTATION')
             self.take_token('INDENTATION')
             self.top_level_element()
         else:
@@ -156,7 +155,9 @@ class Parser:
         elif self.token.type == 'NEWLINE':
             self.take_token('NEWLINE')
             self.take_token('INDENTATION')
-            if self.token.type == 'LIST_INDICATOR':
+            self.take_token('INDENTATION')
+            if self.token.type == 'INDENTATION':
+                self.take_token('INDENTATION')
                 self.take_token('LIST_INDICATOR')
                 self.take_token('SPACE')
                 self.take_token('ID')
@@ -173,7 +174,9 @@ class Parser:
         elif self.token.type == 'NEWLINE':
             self.take_token('NEWLINE')
             self.take_token('INDENTATION')
-            if self.token.type == 'LIST_INDICATOR':
+            self.take_token('INDENTATION')
+            if self.token.type == 'INDENTATION':
+                self.take_token('INDENTATION')
                 self.take_token('LIST_INDICATOR')
                 self.take_token('SPACE')
                 self.take_token('ID')
@@ -185,10 +188,16 @@ class Parser:
         self.take_token('NEWLINE')
         if self.token.type == 'INDENTATION':
             self.take_token('INDENTATION')
-            self.take_token('ID')
-            self.take_token('ASSIGN')
-            self.take_token('ID')
-            self.deploy_prod()
+            if self.token.type == 'INDENTATION':
+                self.take_token('INDENTATION')
+                self.take_token('INDENTATION')
+                self.take_token('ID')
+                self.take_token('ASSIGN')
+                self.take_token('ID')
+                self.deploy_prod()
+            else:
+                print("debug")
+                pass
         elif self.token.type == 'NEWLINE':
             # TODO wyjscie do elementu services
             pass
@@ -232,4 +241,22 @@ class Parser:
             self.networks_element()
         else:
             pass
+
+    def second_level(self):
+        if self.token.type == 'INDENTATION': # TODO przy mysql brak indentacji
+            self.take_token('INDENTATION')
+            if self.token.type == 'INDENTATION':
+                # todo
+                pass
+            else:
+                self.take_token('ID')
+                self.take_token('ASSIGN')
+                self.take_token('NEWLINE')
+                self.take_token('INDENTATION')
+                self.take_token('INDENTATION')
+                self.services_element()
+                self.second_level()
+        else:
+            pass
+
 
