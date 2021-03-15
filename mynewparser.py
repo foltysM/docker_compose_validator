@@ -11,7 +11,8 @@ class Parser:
 
     def take_token(self, token_type):
         if self.token.type != token_type:
-            self.error("Unexpected token: %s" % token_type)
+            self.error("Unexpected token: {} of value {} in line {}, "
+                       "column {}".format(self.token.type, self.token.value, self.token.line, self.token.column))
         if token_type != 'EOF':
             self.token = self.next_token()
 
@@ -24,19 +25,19 @@ class Parser:
         # start -> program EOF
         if self.token.type == 'EOF' or self.token.type == 'volumes' or self.token.type == 'services' or \
                 self.token.type == 'version' or self.token.type == 'networks':
+            if self.token.type == 'EOF':
+                self.error("Input file is empty!")
             self.program()
             self.take_token('EOF')
         else:
-            self.error("Epsilon not allowed")
+            self.error("{} in column {}, line {} not allowed!".format(self.token.value, self.token.column,
+                                                                      self.token.line))
 
     def program(self):
-        # program -> newline program
-        if self.token.type == 'NEWLINE':
-            while self.token.type == 'NEWLINE':
-                self.take_token('NEWLINE')
-            self.program()
-        # program -> top_level_element program
-        elif self.token.type == 'volumes' or self.token.type == 'services' or \
+        # program -> NEWLINE -> top_level_element -> program
+        while self.token.type == 'NEWLINE':
+            self.take_token('NEWLINE')
+        if self.token.type == 'volumes' or self.token.type == 'services' or \
                 self.token.type == 'version' or self.token.type == 'networks':
             self.top_level_element()
             self.program()
@@ -55,7 +56,6 @@ class Parser:
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             self.level = 0
-            self.top_level_element()
 
         # top_level_element -> services assign newline indentation indentation services_element
         elif self.token.type == 'services':
@@ -67,7 +67,6 @@ class Parser:
             self.second_level()
             # print(b.OK + "Services OK" + b.END)
             self.level = 0
-            self.top_level_element()
 
         elif self.token.type == 'volumes':
             self.take_token('volumes')
@@ -80,7 +79,6 @@ class Parser:
             self.volumes_element()
             print(b.OK + "Volumes OK" + b.END)
             self.level = 0
-            self.top_level_element()
 
         elif self.token.type == 'networks':
             self.take_token('networks')
@@ -93,9 +91,8 @@ class Parser:
             self.networks_element()
             print(b.OK + "Networks OK" + b.END)
             self.level = 0
-            self.top_level_element()
-        elif self.token.type == 'environment':
 
+        elif self.token.type == 'environment':
             self.take_token('environment')
             self.take_token('ASSIGN')
             if self.token.type == 'ID':
@@ -103,10 +100,9 @@ class Parser:
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             self.level = 1
-            self.networks_element()
+            self.environment_element()
             print(b.OK + "Environment OK" + b.END)
             self.level = 0
-            self.top_level_element()
         else:
             pass
 
@@ -117,6 +113,7 @@ class Parser:
                 self.take_token('image')
                 self.take_token('ASSIGN')
                 self.image_prod()
+                self.services_element()
 
             # services_element -> ID assign newline build
             elif self.token.type == 'build':
@@ -159,25 +156,27 @@ class Parser:
     def image_prod(self):
         if self.token.type == 'ID':
             self.take_token('ID')
-
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             if self.token.type == 'EOF':
                 return
-            self.take_token('INDENTATION')
             if self.token.type == 'INDENTATION':
                 self.take_token('INDENTATION')
-                self.services_element()
+                if self.token.type == 'INDENTATION':
+                    self.take_token('INDENTATION')
+                else:
+                    pass
             else:
-                pass
+                self.level = 0
         elif self.token.type == 'NEWLINE':
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             self.take_token('INDENTATION')
             self.take_token('INDENTATION')
-            self.top_level_element()
+
         else:
-            self.error("Epsilon not allowed")
+            self.error("{} in column {}, line {} not allowed!".format(self.token.value, self.token.column,
+                                                                      self.token.line))
 
     def build_prod(self):
         while self.token.type == 'NEWLINE':
@@ -203,7 +202,6 @@ class Parser:
         else:
             # exit
             self.level = 0
-            pass
 
     def networks_prod(self):
         if self.token.type == 'ID':
@@ -211,25 +209,28 @@ class Parser:
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             self.take_token('INDENTATION')
-            self.services_element()
+
         elif self.token.type == 'NEWLINE':
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             if self.token.type == 'EOF':
                 return
-            self.take_token('INDENTATION')
             if self.token.type == 'INDENTATION':
                 self.take_token('INDENTATION')
                 if self.token.type == 'INDENTATION':
                     self.take_token('INDENTATION')
-                    self.take_token('LIST_INDICATOR')
-                    self.take_token('SPACE')
-                    self.take_token('ID')
-                    self.networks_prod()
+                    if self.token.type == 'INDENTATION':
+                        self.take_token('INDENTATION')
+                        self.take_token('LIST_INDICATOR')
+                        self.take_token('SPACE')
+                        self.take_token('ID')
+                        self.networks_prod()
+                    else:
+                        pass
                 else:
                     pass
             else:
-                pass
+                self.level = 0
 
     def ports_prod(self):
         if self.token.type == 'ID':
@@ -237,25 +238,28 @@ class Parser:
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             self.take_token('INDENTATION')
-            self.services_element()
+
         elif self.token.type == 'NEWLINE':
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             if self.token.type == 'EOF':
                 return
-            self.take_token('INDENTATION')
             if self.token.type == 'INDENTATION':
                 self.take_token('INDENTATION')
                 if self.token.type == 'INDENTATION':
                     self.take_token('INDENTATION')
-                    self.take_token('LIST_INDICATOR')
-                    self.take_token('SPACE')
-                    self.take_token('ID')
-                    self.ports_prod()
+                    if self.token.type == 'INDENTATION':
+                        self.take_token('INDENTATION')
+                        self.take_token('LIST_INDICATOR')
+                        self.take_token('SPACE')
+                        self.take_token('ID')
+                        self.ports_prod()
+                    else:
+                        pass
                 else:
                     pass
             else:
-                pass
+                self.level = 0
 
     def deploy_prod(self):
         while self.token.type == 'NEWLINE':
@@ -288,7 +292,7 @@ class Parser:
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
             self.take_token('INDENTATION')
-            self.services_element()
+
         elif self.token.type == 'NEWLINE':
             while self.token.type == 'NEWLINE':
                 self.take_token('NEWLINE')
@@ -309,7 +313,7 @@ class Parser:
                 else:
                     pass
             else:
-                pass
+                self.level = 0
         elif self.token.type == 'EOF':
             return
         else:
@@ -358,3 +362,17 @@ class Parser:
             self.second_level()
         else:
             pass
+
+    def environment_element(self):
+        if self.token.type == 'INDENTATION':
+            self.take_token('INDENTATION')
+            self.take_token('ID')
+            self.take_token('ASSIGN')
+            if self.token.type == 'EOF':
+                return
+            while self.token.type == 'NEWLINE':
+                self.take_token('NEWLINE')
+            self.environment_element()
+        else:
+            pass
+
