@@ -7,21 +7,24 @@ Token = collections.namedtuple('Token', ['type', 'value', 'line', 'column'])
 class Lexer:
 
     def __init__(self, input_text):
-        self.tokens = []
-        self.current_token_number = 0
+        self.tokens = []  # list to store tokens
+        self.current_token_number = 0  # token number indicator
         for token in self.tokenize(input_text):
             self.tokens.append(token)
 
     def tokenize(self, input_string):
+        """
+        Method that yields every token in string given
+        :param input_string: string which contains tokens
+        :return: tokens
+        """
         keywords = {'version', 'services', 'build', 'ports', 'image', 'volumes', 'environment', 'deploy', 'EOF',
                     'networks', 'environment'}
 
         token_specification = [
             ('ASSIGN', r': |:'),  # Assignment operator (colon)
-            # ('ID', r'([A-Za-z]+)|(^"$"[A-Za-z]+)|(\d+(\.\d*)?)|("(?:[^"\\]|\\.)*")')
             ('LIST_INDICATOR', r'-'),  # Indicates a list
             ('NEWLINE', r'\n'),  # Line endings and statement terminator
-            # ('INDENTATION', r'[( {2}|\t)]'),  # Tab or 2 spaces
             ('INDENTATION', r'( {2}|\t)'),  # Tab or 2 spaces
             ('SPACE', r' '),  # spaces
             ('ID', r'(([A-Za-z]|(-)|(\d)|(\/)|(_))+)|(^"$"[A-Za-z]+)|(\d+(\.\d*)?)|("(?:[^"\\]|\\.)*")'),

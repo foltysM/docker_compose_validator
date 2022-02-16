@@ -8,10 +8,9 @@ if __name__ == "__main__":
     with open("compose.yaml", "r") as file:
         input_txt = file.read()
 
-# print(input_txt)
 
 lexer = Lexer(input_txt)
-# for i in lexer.tokens:
+# for i in lexer.tokens: # for debug purposes, to see tokenizing process
 #     print(i)
 # print(" ")
 parser = Parser(lexer)
