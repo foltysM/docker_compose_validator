@@ -117,11 +117,8 @@ To get a local copy up and running follow these simple example steps.
    ```commandline
    pip install -r requirements.txt
    ```
-3. Enter your input file directory and name in `main.py`
-   ```python
-   VIDEO_NAME = 'test2.mp4'
-   ```
-4. Run program
+
+3. Run program
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
